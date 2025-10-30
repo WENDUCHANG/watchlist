@@ -27,6 +27,15 @@ class Movie(db.Model):
     title:Mapped[str]=mapped_column(String(60))
     year:Mapped[str] = mapped_column(String(4))
 
+@app.context_processor
+def inject_user():
+    user = db.session.execute(select(User)).scalar
+    return dict(user=user)
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('404.html'),404
+
 
 @app.cli.command('init-db')
 @click.option('--drop', is_flag=True, help='Crete after drop.')
@@ -45,7 +54,7 @@ def forge():
     # 全局的两个变量移动到这个函数内
     name = 'Wang Yifeng'
     movies = [
-        {'title':'星际穿越','year':'2013'},
+        {'title': 'Interstellar','year':'2014'},
         {'title': 'My Neighbor Totoro', 'year': '1988'},
         {'title': 'Dead Poets Society', 'year': '1989'},
         {'title': 'A Perfect World', 'year': '1993'},
@@ -75,9 +84,8 @@ def home():
 
 @app.route('/')
 def index():
-    user = db.session.execute(select(User)).scalar()
     movies = db.session.execute(select(Movie)).scalars().all()
-    return render_template('index.html',user=user,movies=movies)
+    return render_template('index.html',movies=movies)
 
 
 if __name__ == '__main__':
