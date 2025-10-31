@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+from flask import request, url_for, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String
 from sqlalchemy import select
@@ -27,9 +28,10 @@ class Movie(db.Model):
     title:Mapped[str]=mapped_column(String(60))
     year:Mapped[str] = mapped_column(String(4))
 
+
 @app.context_processor
 def inject_user():
-    user = db.session.execute(select(User)).scalar
+    user = db.session.execute(select(User)).scalar()
     return dict(user=user)
 
 @app.errorhandler(404)
@@ -76,17 +78,57 @@ def forge():
     db.session.commit()
     click.echo('Done.')
 
-'''
-@app.route('/')
-def home():
-    return render_template('index.html', name=name, movies=movies)
-'''
 
-@app.route('/')
+app.secret_key='dev'
+
+
+@app.route('/',methods=['GET','POST'])
 def index():
+    if request.method == 'POST':
+        title=request.form.get('title').strip()
+        year = request.form.get('year').strip()
+        if not title or not year or len(year)>4 or len(title)>60:
+            flash('Invalid input.')
+            return redirect(url_for('index'))
+        #保存表单数据到数据库
+        movie =Movie(title=title,year=year)
+        db.session.add(movie)
+        db.session.commit()
+        flash('Item created.')
+        return redirect(url_for('index'))
+    
+    user = db.session.execute(select(User)).scalar()
     movies = db.session.execute(select(Movie)).scalars().all()
+    #print(user.name)
     return render_template('index.html',movies=movies)
 
+@app.route('/movie/edit/<int:movie_id>', methods=['GET', 'POST'])
+def edit(movie_id):
+    movie = db.get_or_404(Movie, movie_id)
+
+    if request.method == 'POST':  # 处理编辑表单的提交请求
+        title = request.form.get('title').strip()
+        year = request.form.get('year').strip()
+
+        if not title or not year or len(year) != 4 or len(title) > 60:
+            flash('Invalid input.')
+            return redirect(url_for('edit', movie_id=movie_id))  # 重定向回对应的编辑页面
+
+        movie.title = title  # 更新标题
+        movie.year = year  # 更新年份
+        db.session.commit()  # 提交数据库会话
+        flash('Item updated.')
+        return redirect(url_for('index'))  # 重定向回主页
+
+    return render_template('edit.html', movie=movie)  # 传入被编辑的电影记录
+
+@app.route('/movie/delete/<int:movie_id>', methods=['POST'])  # 限定只接受 POST 请求
+def delete(movie_id):
+    movie = db.get_or_404(Movie, movie_id)  # 获取电影记录
+    db.session.delete(movie)  # 删除对应的记录
+    db.session.commit()  # 提交数据库会话
+    flash('Item deleted.')
+    return redirect(url_for('index'))  # 重定向回主页
 
 if __name__ == '__main__':
     app.run(debug=True)
