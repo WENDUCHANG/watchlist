@@ -21,6 +21,7 @@ def register_commands(app):
         name = '王壹锋'
         name1 = '郑钰婕'
         name2 = '刘洋州'
+        name3 = '王静岚'
         movies = [
             {'title': '星际穿越','year':'2014'},
             {'title': '暗黑', 'year': '2017'},
@@ -40,9 +41,12 @@ def register_commands(app):
         user1.set_password('20020205')
         user2 = User(name=name2,username='Liuyangzhou')
         user2.set_password('12345678')
+        user3 = User(name=name2,username='Wangjinglan')
+        user3.set_password('696387')
         db.session.add(user)
         db.session.add(user1)
         db.session.add(user2)
+        db.session.add(user3)
         for m in movies:
             movie = Movie(title=m['title'], year=m['year'])
             db.session.add(movie)
