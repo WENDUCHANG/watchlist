@@ -19,6 +19,8 @@ def register_commands(app):
         db.create_all()
         # 全局的两个变量移动到这个函数内
         name = '王壹锋'
+        name1 = '郑钰婕'
+        name2 = '刘洋州'
         movies = [
             {'title': '星际穿越','year':'2014'},
             {'title': '暗黑', 'year': '2017'},
@@ -34,7 +36,13 @@ def register_commands(app):
         ]
         user = User(name=name,username='Wangyifeng')
         user.set_password('1071816386')
+        user1 = User(name=name2,username='Zhengyujie')
+        user1.set_password('20020205')
+        user2 = User(name=name2,username='Liuyangzhou')
+        user2.set_password('12345678')
         db.session.add(user)
+        db.session.add(user1)
+        db.session.add(user2)
         for m in movies:
             movie = Movie(title=m['title'], year=m['year'])
             db.session.add(movie)
