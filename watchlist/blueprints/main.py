@@ -18,7 +18,7 @@ def index():
         if not title or not year or len(year)>4 or len(title)>60:
             flash('输入标题长度和年份不合法')
             res = make_response(redirect(url_for('main.index')))
-            res.status = '301 invalid input redirect to home page'
+            res.status = '301 Invalid add input redirect to home page'
             return res
             #return redirect(url_for('main.index'))
         #保存表单数据到数据库
@@ -27,7 +27,7 @@ def index():
         db.session.commit()
         flash('条目创建成功')
         res = make_response(redirect(url_for('main.index')))
-        res.status = '302 Add success redirect to home page'
+        res.status = '301 Add success redirect to home page'
         return res
         #return redirect(url_for('main.index'))
     
@@ -46,15 +46,18 @@ def edit(movie_id):
         year = request.form.get('year').strip()
 
         if not title or not year or len(year) != 4 or len(title) > 60:
-            flash('Invalid input.')
-            return redirect(url_for('main.edit', movie_id=movie_id))  # 重定向回对应的编辑页面
+            flash('编辑格式错误')
+            res = make_response(redirect(url_for('main.edit', movie_id=movie_id)))
+            res.status = '301 Invalid edit input redirect to edit page'
+            return res
+            #return redirect(url_for('main.edit', movie_id=movie_id))  # 重定向回对应的编辑页面
 
         movie.title = title  # 更新标题
         movie.year = year  # 更新年份
         db.session.commit()  # 提交数据库会话
         flash('条目更改成功')
         res = make_response(redirect(url_for('main.index')))
-        res.status = '302 edit success redirect to home page'
+        res.status = '301 Edit success redirect to home page'
         return res
         #return redirect(url_for('main.index'))  # 重定向回主页
 
@@ -68,7 +71,7 @@ def delete(movie_id):
     db.session.commit()  # 提交数据库会话
     flash('条目已删除')
     res = make_response(redirect(url_for('main.index')))
-    res.status = '302 delete success redirect to home page'
+    res.status = '301 Delete success redirect to home page'
     return res
     #return redirect(url_for('main.index')),303  # 重定向回主页
 
@@ -78,9 +81,12 @@ def settings():
     if request.method == 'POST':
         name = request.form.get('name')
 
-        if not name or len(name) > 20:
+        if not name or len(name) > 10:
             flash('非法输入')
-            return redirect(url_for('main.settings'))
+            res = make_response(redirect(url_for('main.settings')))
+            res.status = '302 Invalid setting input redirect to settings page'
+            return res
+            #return redirect(url_for('main.settings'))
 
         current_user.name = name  # 更新当前用户的名字
         # current_user 会返回当前登录用户的数据库记录对象
