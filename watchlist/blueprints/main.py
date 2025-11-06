@@ -1,5 +1,5 @@
 from flask import Blueprint
-from flask import request,redirect,flash,url_for,render_template
+from flask import request,redirect,flash,url_for,render_template,make_response
 from flask_login import login_required,current_user
 from sqlalchemy import select
 
@@ -16,14 +16,20 @@ def index():
         title=request.form.get('title').strip()
         year = request.form.get('year').strip()
         if not title or not year or len(year)>4 or len(title)>60:
-            flash('Invalid input.')
-            return redirect(url_for('main.index'))
+            flash('输入标题长度和年份不合法')
+            res = make_response(redirect(url_for('main.index')))
+            res.status = '301 invalid input redirect to home page'
+            return res
+            #return redirect(url_for('main.index'))
         #保存表单数据到数据库
         movie =Movie(title=title,year=year)
         db.session.add(movie)
         db.session.commit()
         flash('条目创建成功')
-        return redirect(url_for('main.index'))
+        res = make_response(redirect(url_for('main.index')))
+        res.status = '302 Add success redirect to home page'
+        return res
+        #return redirect(url_for('main.index'))
     
     user = db.session.execute(select(User)).scalar()
     movies = db.session.execute(select(Movie)).scalars().all()
@@ -47,7 +53,10 @@ def edit(movie_id):
         movie.year = year  # 更新年份
         db.session.commit()  # 提交数据库会话
         flash('条目更改成功')
-        return redirect(url_for('main.index'))  # 重定向回主页
+        res = make_response(redirect(url_for('main.index')))
+        res.status = '302 edit success redirect to home page'
+        return res
+        #return redirect(url_for('main.index'))  # 重定向回主页
 
     return render_template('edit.html', movie=movie)  # 传入被编辑的电影记录
 
@@ -58,7 +67,10 @@ def delete(movie_id):
     db.session.delete(movie)  # 删除对应的记录
     db.session.commit()  # 提交数据库会话
     flash('条目已删除')
-    return redirect(url_for('main.index'))  # 重定向回主页
+    res = make_response(redirect(url_for('main.index')))
+    res.status = '302 delete success redirect to home page'
+    return res
+    #return redirect(url_for('main.index')),303  # 重定向回主页
 
 @main_bp.route('/settings', methods=['GET', 'POST'])
 @login_required
@@ -77,6 +89,9 @@ def settings():
         # user.name = name
         db.session.commit()
         flash('用户姓名已更改')
-        return redirect(url_for('main.index'))
+        res = make_response(redirect(url_for('main.index')))
+        res.status = '302 setting success redirect to home page'
+        return res
+        #return redirect(url_for('main.index'))
 
     return render_template('settings.html')
